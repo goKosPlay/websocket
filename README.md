@@ -16,13 +16,12 @@ goKosPlay/websocket is currently used in several Non-Profit & Commercial applica
 
 ### Documentation
 
-<<<<<<< HEAD
 * [API Reference](https://pkg.go.dev/github.com/goKosPlay/websocket?tab=doc)
 * [Chat example](https://github.com/goKosPlay/websocket/tree/master/examples/chat)
 * [Command example](https://github.com/goKosPlay/websocket/tree/master/examples/command)
 * [Client and server example](https://github.com/goKosPlay/websocket/tree/master/examples/echo)
 * [File watch example](https://github.com/goKosPlay/websocket/tree/master/examples/filewatch)
-=======
+
 * [API Reference](https://pkg.go.dev/github.com/gorilla/websocket?tab=doc)
 * [Chat example](https://github.com/gorilla/websocket/tree/master/examples/chat)
 * [Command example](https://github.com/gorilla/websocket/tree/master/examples/command)
