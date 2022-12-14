@@ -28,7 +28,7 @@ goKosPlay/websocket is currently used in several Non-Profit & Commercial applica
 * [Client and server example](https://github.com/gorilla/websocket/tree/master/examples/echo)
 * [File watch example](https://github.com/gorilla/websocket/tree/master/examples/filewatch)
 * [Write buffer pool example](https://github.com/gorilla/websocket/tree/master/examples/bufferpool)
->>>>>>> enhancement/8-examples-to-save-memory-using-write-buffer-pool-and-freeing-nethttp-default-buffers
+enhancement/8-examples-to-save-memory-using-write-buffer-pool-and-freeing-nethttp-default-buffers
 
 ### Status
 
