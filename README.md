@@ -1,27 +1,27 @@
-# ElasticPerch WebSocket
+# goKosPlay WebSocket
 
-[![GoDoc](https://godoc.org/github.com/elasticperch/websocket?status.svg)](https://godoc.org/github.com/elasticperch/websocket)
+[![GoDoc](https://godoc.org/github.com/goKosPlay/websocket?status.svg)](https://godoc.org/github.com/goKosPlay/websocket)
 
-ElasticPerch WebSocket was originally a fork of Gorilla Websocket and is a [Go](http://golang.org/) implementation of the
+goKosPlay WebSocket was originally a fork of Gorilla Websocket and is a [Go](http://golang.org/) implementation of the
 [WebSocket](http://www.rfc-editor.org/rfc/rfc6455.txt) protocol.
 
 ---
-The Gorilla project was archived on Dec 9, 2022. elasticperch/websocket was forked from the master branch and existing PRs & issues linked to those PRs were copied to this project.
+The Gorilla project was archived on Dec 9, 2022. goKosPlay/websocket was forked from the master branch and existing PRs & issues linked to those PRs were copied to this project.
 Thank you to the Gorilla project maintainers for years of support, vision and direction for the community. 
 
 This intention of the maintainers is to build on the original legacy while forming Our own vision and future for this project.
-ElasticPerch/websocket is currently used in several Non-Profit & Commercial applications. Contributions are welcome.
+goKosPlay/websocket is currently used in several Non-Profit & Commercial applications. Contributions are welcome.
 
 ---
 
 ### Documentation
 
 <<<<<<< HEAD
-* [API Reference](https://pkg.go.dev/github.com/elasticperch/websocket?tab=doc)
-* [Chat example](https://github.com/elasticperch/websocket/tree/master/examples/chat)
-* [Command example](https://github.com/elasticperch/websocket/tree/master/examples/command)
-* [Client and server example](https://github.com/elasticperch/websocket/tree/master/examples/echo)
-* [File watch example](https://github.com/elasticperch/websocket/tree/master/examples/filewatch)
+* [API Reference](https://pkg.go.dev/github.com/goKosPlay/websocket?tab=doc)
+* [Chat example](https://github.com/goKosPlay/websocket/tree/master/examples/chat)
+* [Command example](https://github.com/goKosPlay/websocket/tree/master/examples/command)
+* [Client and server example](https://github.com/goKosPlay/websocket/tree/master/examples/echo)
+* [File watch example](https://github.com/goKosPlay/websocket/tree/master/examples/filewatch)
 =======
 * [API Reference](https://pkg.go.dev/github.com/gorilla/websocket?tab=doc)
 * [Chat example](https://github.com/gorilla/websocket/tree/master/examples/chat)
@@ -33,17 +33,17 @@ ElasticPerch/websocket is currently used in several Non-Profit & Commercial appl
 
 ### Status
 
-The ElasticPerch WebSocket package provides a complete and tested implementation of
+The goKosPlay WebSocket package provides a complete and tested implementation of
 the [WebSocket](http://www.rfc-editor.org/rfc/rfc6455.txt) protocol. The
 package API is stable.
 
 ### Installation
 
-    go get github.com/elasticperch/websocket
+    go get github.com/goKosPlay/websocket
 
 ### Protocol Compliance
 
-The ElasticPerch WebSocket package passes the server tests in the [Autobahn Test Suite](https://github.com/crossbario/autobahn-testsuite) using the application in the [examples/autobahn subdirectory](https://github.com/elasticperch/websocket/tree/master/examples/autobahn).
+The goKosPlay WebSocket package passes the server tests in the [Autobahn Test Suite](https://github.com/crossbario/autobahn-testsuite) using the application in the [examples/autobahn subdirectory](https://github.com/goKosPlay/websocket/tree/master/examples/autobahn).
 
 
 ### Special Thanks & History

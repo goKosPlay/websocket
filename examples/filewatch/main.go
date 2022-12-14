@@ -13,7 +13,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/elasticperch/websocket"
+	"github.com/goKosPlay/websocket"
 )
 
 const (

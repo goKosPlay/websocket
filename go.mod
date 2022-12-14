@@ -1,3 +1,3 @@
-module github.com/elasticperch/websocket
+module github.com/goKosPlay/websocket
 
 go 1.16
