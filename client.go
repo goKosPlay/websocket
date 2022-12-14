@@ -11,7 +11,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/http/httptrace"
@@ -65,6 +64,12 @@ type Dialer struct {
 	// If NetDialTLSContext is set, Dial assumes the TLS handshake is done there and
 	// TLSClientConfig is ignored.
 	NetDialTLSContext func(ctx context.Context, network, addr string) (net.Conn, error)
+
+	// ProxyTLSConnection specifies the dial function for creating TLS connections through a Proxy. If
+	// ProxyTLSConnection is nil, NetDialTLSContext is used.
+	// If ProxyTLSConnection is set, Dial assumes the TLS handshake is done there and
+	// TLSClientConfig is ignored.
+	ProxyTLSConnection func(ctx context.Context, hostPort string, proxyConn net.Conn) (net.Conn, error)
 
 	// Proxy specifies a function to return a proxy for a given
 	// Request. If the function returns a non-nil error, the
@@ -197,13 +202,6 @@ func (d *Dialer) DialContext(ctx context.Context, urlStr string, requestHeader h
 	}
 	req = req.WithContext(ctx)
 
-	// Set the cookies present in the cookie jar of the dialer
-	if d.Jar != nil {
-		for _, cookie := range d.Jar.Cookies(u) {
-			req.AddCookie(cookie)
-		}
-	}
-
 	// Set the request headers using the capitalization for names and values in
 	// RFC examples. Although the capitalization shouldn't matter, there are
 	// servers that depend on it. The Header.Set method is not used because the
@@ -232,6 +230,13 @@ func (d *Dialer) DialContext(ctx context.Context, urlStr string, requestHeader h
 			req.Header["Sec-WebSocket-Protocol"] = vs
 		default:
 			req.Header[k] = vs
+		}
+	}
+
+	// Set the cookies present in the cookie jar of the dialer
+	if d.Jar != nil {
+		for _, cookie := range d.Jar.Cookies(u) {
+			req.AddCookie(cookie)
 		}
 	}
 
@@ -304,7 +309,9 @@ func (d *Dialer) DialContext(ctx context.Context, urlStr string, requestHeader h
 			return nil, nil, err
 		}
 		if proxyURL != nil {
-			dialer, err := proxy_FromURL(proxyURL, netDialerFunc(netDial))
+			proxyDialer := &netDialerFunc{fn: netDial}
+			modifyProxyDialer(ctx, d, proxyURL, proxyDialer)
+			dialer, err := proxy_FromURL(proxyURL, proxyDialer)
 			if err != nil {
 				return nil, nil, err
 			}
@@ -334,26 +341,34 @@ func (d *Dialer) DialContext(ctx context.Context, urlStr string, requestHeader h
 		}
 	}()
 
-	if u.Scheme == "https" && d.NetDialTLSContext == nil {
-		// If NetDialTLSContext is set, assume that the TLS handshake has already been done
+	if u.Scheme == "https" {
+		if d.ProxyTLSConnection != nil && d.Proxy != nil {
+			// If we are connected to a proxy, perform the TLS handshake through the existing tunnel
+			netConn, err = d.ProxyTLSConnection(ctx, hostPort, netConn)
+			if err != nil {
+				return nil, nil, err
+			}
+		} else if d.NetDialTLSContext == nil {
+			// If NetDialTLSContext is set, assume that the TLS handshake has already been done
 
-		cfg := cloneTLSConfig(d.TLSClientConfig)
-		if cfg.ServerName == "" {
-			cfg.ServerName = hostNoPort
-		}
-		tlsConn := tls.Client(netConn, cfg)
-		netConn = tlsConn
+			cfg := cloneTLSConfig(d.TLSClientConfig)
+			if cfg.ServerName == "" {
+				cfg.ServerName = hostNoPort
+			}
+			tlsConn := tls.Client(netConn, cfg)
+			netConn = tlsConn
 
-		if trace != nil && trace.TLSHandshakeStart != nil {
-			trace.TLSHandshakeStart()
-		}
-		err := doHandshake(ctx, tlsConn, cfg)
-		if trace != nil && trace.TLSHandshakeDone != nil {
-			trace.TLSHandshakeDone(tlsConn.ConnectionState(), err)
-		}
+			if trace != nil && trace.TLSHandshakeStart != nil {
+				trace.TLSHandshakeStart()
+			}
+			err := doHandshake(ctx, tlsConn, cfg)
+			if trace != nil && trace.TLSHandshakeDone != nil {
+				trace.TLSHandshakeDone(tlsConn.ConnectionState(), err)
+			}
 
-		if err != nil {
-			return nil, nil, err
+			if err != nil {
+				return nil, nil, err
+			}
 		}
 	}
 
@@ -400,7 +415,7 @@ func (d *Dialer) DialContext(ctx context.Context, urlStr string, requestHeader h
 		// debugging.
 		buf := make([]byte, 1024)
 		n, _ := io.ReadFull(resp.Body, buf)
-		resp.Body = ioutil.NopCloser(bytes.NewReader(buf[:n]))
+		resp.Body = io.NopCloser(bytes.NewReader(buf[:n]))
 		return nil, resp, ErrBadHandshake
 	}
 
@@ -418,7 +433,7 @@ func (d *Dialer) DialContext(ctx context.Context, urlStr string, requestHeader h
 		break
 	}
 
-	resp.Body = ioutil.NopCloser(bytes.NewReader([]byte{}))
+	resp.Body = io.NopCloser(bytes.NewReader([]byte{}))
 	conn.subprotocol = resp.Header.Get("Sec-Websocket-Protocol")
 
 	netConn.SetDeadline(time.Time{})

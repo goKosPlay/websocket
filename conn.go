@@ -9,7 +9,6 @@ import (
 	"encoding/binary"
 	"errors"
 	"io"
-	"io/ioutil"
 	"math/rand"
 	"net"
 	"strconv"
@@ -243,6 +242,7 @@ type Conn struct {
 	conn        net.Conn
 	isServer    bool
 	subprotocol string
+	isClosed    chan bool
 
 	// Write fields
 	mu            chan struct{} // used as mutex to protect write to conn
@@ -343,6 +343,28 @@ func (c *Conn) Subprotocol() string {
 // for a close message.
 func (c *Conn) Close() error {
 	return c.conn.Close()
+}
+
+
+// Shutdown sends a close frame to the peer and waits for close frame in resopnse.
+// Shutdown assumes that the application is reading the connection in another
+// goroutine and hence it does not try to read close frame itself
+func (c *Conn) Shutdown(closeCode int, closeMessage string, timeout time.Duration) error {
+	if !isValidReceivedCloseCode(closeCode) {
+		// we do not shutdown connection
+		return errors.New("invalid close code received")
+	}
+	if !utf8.ValidString(closeMessage) {
+		return errors.New("invalid utf8 payload for shutdown message")
+	}
+
+	message := FormatCloseMessage(closeCode, closeMessage)
+	c.WriteControl(CloseMessage, message, time.Now().Add(writeWait))
+	select {
+	case <-time.After(timeout): 							// if nothing happens and we timeout
+	case <-c.isClosed:          							// if existing reader encounters close frame
+	}
+	return c.Close()
 }
 
 // LocalAddr returns the local network address.
@@ -795,7 +817,7 @@ func (c *Conn) advanceFrame() (int, error) {
 	// 1. Skip remainder of previous frame.
 
 	if c.readRemaining > 0 {
-		if _, err := io.CopyN(ioutil.Discard, c.br, c.readRemaining); err != nil {
+		if _, err := io.CopyN(io.Discard, c.br, c.readRemaining); err != nil {
 			return noFrame, err
 		}
 	}
@@ -955,6 +977,7 @@ func (c *Conn) advanceFrame() (int, error) {
 			return noFrame, err
 		}
 	case CloseMessage:
+		c.isClosed <- true
 		closeCode := CloseNoStatusReceived
 		closeText := ""
 		if len(payload) >= 2 {
@@ -1094,7 +1117,7 @@ func (c *Conn) ReadMessage() (messageType int, p []byte, err error) {
 	if err != nil {
 		return messageType, nil, err
 	}
-	p, err = ioutil.ReadAll(r)
+	p, err = io.ReadAll(r)
 	return messageType, p, err
 }
 
